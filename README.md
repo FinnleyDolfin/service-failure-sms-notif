@@ -33,7 +33,7 @@ Go to: [https://voip.ms/m/subaccount.php](https://voip.ms/m/subaccount.php)
 * **Password:** Set a secure password
 * **Device type:** **ATA device, IP Phone or Softphone** (this must be selected even for SMS-only usage)
 * **Dialing Mode:** Use Main Account Setting
-* **CallerID Number:** Leave unselected (not required for SMS-only, especially if no DID is ordered yet)
+* **CallerID Number:** Select "I use a system capable of passing its own DID"
 * **Canada Routing / International Route:** Leave defaults
 * **Allow International Calls:** No
 * \**Allow *225 for Balance:** No
