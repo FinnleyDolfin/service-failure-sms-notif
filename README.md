@@ -31,17 +31,15 @@ Go to: [https://voip.ms/m/subaccount.php](https://voip.ms/m/subaccount.php)
 * **Authentication type:** User/Password Authentication
 * **Username:** Choose a unique name (max 12 characters)
 * **Password:** Set a secure password
-* **Device type:** **ATA device, IP Phone or Softphone** (this must be selected even for SMS-only usage)
+* **Device type:** **ATA device, IP Phone or Softphone**
 * **Dialing Mode:** Use Main Account Setting
 * **CallerID Number:** Select "I use a system capable of passing its own DID"
-* **Canada Routing / International Route:** Leave defaults
 * **Allow International Calls:** No
-* \**Allow *225 for Balance:** No
+* **Allow *225 for Balance:** No
 * **Music on Hold:** No Music
 * **Language:** English
 
-**Skip/leave default for these:**
-
+**Skip or leave default for:**
 * Call Transcription, Parking Lot, Voicemail, Internal Extension
 
 Click **Create Account** when done.
@@ -49,96 +47,86 @@ Click **Create Account** when done.
 ### 3. **Order and Assign a DID (SMS-Only)**
 
 1. Visit: [https://voip.ms/m/dids.php](https://voip.ms/m/dids.php)
-2. Choose "United States" under **Local Numbers**.
-3. Use one of two search options:
-
-   * **Browse DIDs by State**: Select a state to see available rate centers.
-   * **Browse DIDs by Search Criteria**: Search for specific digits for vanity numbers (optional).
-4. Click **View Numbers** next to a rate center.
-5. Select a DID with the SMS icon and choose **Per Minute Plan**.
-6. In the **Routing Settings**, select the sub-account you created from the dropdown.
-7. Click **Order DID**.
+2. Choose "United States" under **Local Numbers**
+3. Search by state or digits and select a DID with the SMS icon
+4. Choose **Per Minute Plan**
+5. In **Routing Settings**, select your sub-account
+6. Click **Order DID**
 
 ### 4. **Enable SMS on Your DID**
 
 * Go to: [https://voip.ms/m/managedid.php](https://voip.ms/m/managedid.php)
-* Click **Edit** next to your DID.
-* Scroll to **Message Service (SMS/MMS)**.
-* Check **Enable SMS/MMS**.
-* Click **Click here to apply changes**.
+* Click **Edit** next to your DID
+* Scroll to **Message Service (SMS/MMS)** and enable it
+* Click **Apply changes**
 
 ### 5. **Enable API Access**
 
 * Go to: [https://voip.ms/m/api.php](https://voip.ms/m/api.php)
-* Set an **API password**.
-* Click **Save API Password**.
-* Enable API by clicking **Enable/Disable API**.
-* Add your public IP address to the allowed list.
-* Click **Save IP Addresses**.
+* Set and save an **API password**
+* Enable API access
+* Add your public IP address to the allowed list
+* Click **Save IP Addresses**
 
 ---
 
-## Python Script Setup
-
-### Configuration
-
-In the `main()` function near the bottom of `service_sms.py`, update the following values with your actual credentials:
-
-```python
-    voip = VoipMS("your_email@example.com", "r(your_secure_api_password")
-    from_did = "1XXXXXXXXXX"     # Your SMS-enabled VoIP.ms DID
-    to_number = "1YYYYYYYYYY"    # Destination number to receive alerts
-```
+## Script Usage
 
 ### Initial Setup
 
-Run the script once to select services to monitor:
+To run initial setup, use the `--setup` option:
 
-```bash
-python3 service_sms.py
+```
+python3 service_sms.py --setup
 ```
 
-You will be prompted with a list of detected running services like this:
+This will:
 
-```bash
-Select services to monitor:
-[0] avahi-daemon.service
-[1] bluetooth.service
-[2] cups.service
-...
-Enter comma-separated numbers (e.g. 0,2,5):
+* Prompt for your VoIP.ms credentials, DID, and alert destination number
+* Show a list of running systemd services to select for monitoring
+* Save all information to `settings.json`
+* Send a test SMS message
+* Ask if you'd like to start monitoring immediately
+
+If `settings.json` is missing or corrupted, setup will automatically run again.
+
+### Test Mode
+
+To send a manual test SMS message:
+
+```
+python3 service_sms.py --test
 ```
 
-Choose the services you want to monitor and press Enter. This will save your preferences for future runs in `monitored_services.json`.
+You will be prompted for:
 
-**To change the selected services later, delete `monitored_services.json` and rerun the script.**
+* Destination number
+* Message text (up to 160 characters)
 
 ### Start Monitoring
 
-After initial setup:
+If you already ran `--setup`, you can launch monitoring like this:
 
-```bash
+```
 python3 service_sms.py
 ```
 
 The script will:
 
-* Check all monitored services every 30 seconds
-* Send SMS alert when a service **stops**
-* Send SMS recovery when it **starts again**
-* Send a **daily heartbeat** to show it's still running
+- Check all monitored services every 30 seconds  
+- Send SMS alert when a service **stops**  
+- Send SMS recovery when it **starts again**  
+- Send a **daily heartbeat** message
 
 ---
 
 ## Run as a Background Service
 
-To run continuously in the background and start automatically after reboot:
-
-### 1. Create the systemd unit file
+### 1. Create a systemd unit file
 
 Save the following to `/etc/systemd/system/voipms-monitor.service`:
 
-```ini
+```
 [Unit]
 Description=VoIP.ms SMS Service Monitor
 After=network.target
@@ -153,19 +141,19 @@ User=your_linux_user
 WantedBy=multi-user.target
 ```
 
-Replace `/path/to/service_sms.py` and `your_linux_user` with your actual script path and user.
+Replace `/path/to/service_sms.py` and `your_linux_user` with your actual script path and username.
 
 ### 2. Enable and start the service
 
-```bash
+```
 sudo systemctl daemon-reexec
 sudo systemctl enable voipms-monitor.service
 sudo systemctl start voipms-monitor.service
 ```
 
-To check the status:
+Check the status:
 
-```bash
+```
 sudo systemctl status voipms-monitor.service
 ```
 
@@ -175,8 +163,8 @@ sudo systemctl status voipms-monitor.service
 
 Never commit your real API password or phone numbers to a public repository. Always use placeholders in shared code:
 
-```python
-voip = VoipMS("your_email@example.com", "r(your_secure_api_password")
+```
+voip = VoipMS("your_email@example.com", "your_secure_api_password")
 from_did = "1XXXXXXXXXX"
 to_number = "1YYYYYYYYYY"
 ```
@@ -194,4 +182,3 @@ If your SMS messages aren't working:
 ---
 
 Happy monitoring!
-# service-failure-sms-notif
